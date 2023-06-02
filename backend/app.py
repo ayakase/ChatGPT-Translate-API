@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from flask_socketio import SocketIO,emit
 import time
@@ -14,6 +14,7 @@ socketio = SocketIO(app,cors_allowed_origins="http://localhost:5173")
 @app.route('/')
 def hello_world():
     return 'Connected to server'
+filename = ""
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files["file"]
@@ -25,6 +26,7 @@ def upload_file():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 
     file.save('upload/' + file.filename)
+    emit('uploaded', "Upload Success", broadcast=True, namespace='/')
     def num_tokens_from_string(string: str, encoding_name: str) -> int:
         encoding = tiktoken.get_encoding(encoding_name)
         num_tokens = len(encoding.encode(string))
@@ -97,14 +99,18 @@ def upload_file():
                         messages = messages
                     )
                 except Exception as e:
-                    print("Rate limit exceeded. Please try again later.")
                     print(e)
+                    emit('process', e, broadcast=True, namespace='/')
                     continue
                 print(token_accumulator)
+                print(row_str)
+                emit('process', "Translating"+ row_str, broadcast=True, namespace='/')
                 if (token_accumulator > 20000):
                     print("30s until next request")
+                    emit('process', "30s until next request", broadcast=True, namespace='/')
                     time.sleep(30)
                     print("continue")
+                    emit('process', "continue", broadcast=True, namespace='/')
                     token_accumulator = 0
                 token += response['usage']['total_tokens']
                 translated = response['choices'][0]['message']['content']
@@ -125,10 +131,15 @@ def upload_file():
             workbook.save(output)
         return total_tokens
     input = './upload/' + file.filename
-    output = './output.xlsx'
+    output = './translated/' + file.filename
     total_tokens = duplicate_worksheets(input, output)
     print("Total tokens: {}".format(total_tokens))
-    return jsonify({'message': 'File translated successfully'})
+    emit('process', "Translating process done", broadcast=True, namespace='/')
+    emit('complete', "Translation Complete", broadcast=True, namespace='/')
+@app.route('/download')
+def download_file():
+    file = './translated' + filename
+    return send_file(file, as_attachment=True)
 if __name__ == '__main__':
     socketio.run(app)
 
