@@ -1,11 +1,22 @@
 <template>
   <div class="container">
     <h2 class="title">Upload XLSX file here</h2>
-    <v-file-input show-size counter v-model="selectedFile" :accept="['.xlsx']" label="Choose file"
-      class="file-input"></v-file-input>
+    <v-file-input
+      show-size
+      counter
+      v-model="selectedFile"
+      :accept="['.xlsx']"
+      label="Choose file"
+      class="file-input"
+    ></v-file-input>
     <v-btn @click="uploadFile()" class="submit-button">Submit</v-btn>
-    <v-btn @click="downloadFile"> Download</v-btn>
-    <v-card class="server-prompt" :loading="isLoading" title="Processing" variant="outlined">
+    <!-- <v-btn @click="downloadFile"> Download</v-btn> -->
+    <v-card
+      class="server-prompt"
+      :loading="isLoading"
+      :title="processStatus"
+      variant="outlined"
+    >
       <v-divider></v-divider>
       <div class="message-container">
         <p class="message" v-for="message in messages" :key="message">
@@ -25,6 +36,7 @@ import "vue-toast-notification/dist/theme-sugar.css";
 import { onMounted } from "vue";
 export default {
   setup() {
+    let processStatus = ref("Status");
     const socket = io("http://localhost:5000");
     const selectedFile = ref(null);
     let formtext = ref();
@@ -47,31 +59,34 @@ export default {
         },
       };
       api
-        .post("/upload", formData, config)
+        .post("/upload", formData, config, { responseType: "blob" })
         .then((response) => {
           console.log(response.data);
-          isLoading.value = false;
-
-          // const link = document.createElement("a");
-          // link.href = response.data.url;
-          // link.download = selectedFile.value[0].name;
-          // link.click();
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", "data.zip"); // Set the desired file name here
+          document.body.appendChild(link);
+          link.click();
         })
         .catch((error) => {
           console.log("Error occurred:", error);
         });
     };
     const downloadFile = () => {
-      api.get('/download')
-    }
+      api.get("/download");
+    };
     onMounted(() => {
       socket.on("uploaded", (response) => {
         console.log(response);
         $toast.success(response);
+        processStatus.value = "Translating";
       });
       socket.on("complete", (response) => {
         console.log(response);
+        isLoading.value = false;
         $toast.success(response);
+        processStatus.value = "Completed Translation";
       });
       socket.on("process", (response) => {
         console.log(response);
@@ -84,7 +99,8 @@ export default {
       formtext,
       messages,
       isLoading,
-      downloadFile
+      downloadFile,
+      processStatus,
     };
   },
 };
@@ -121,7 +137,6 @@ export default {
   height: 28rem;
   overflow: hidden;
   background-color: rgb(61, 61, 61);
-
 }
 
 .message-container {

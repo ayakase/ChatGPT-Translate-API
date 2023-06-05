@@ -14,12 +14,9 @@ socketio = SocketIO(app,cors_allowed_origins="http://localhost:5173")
 @app.route('/')
 def hello_world():
     return 'Connected to server'
-filename = ""
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files["file"]
-    filename = file.filename
-    print(filename)
     if 'file' not in request.files:
         return jsonify({'error': 'No file selected'}), 
     file = request.files['file']
@@ -136,10 +133,14 @@ def upload_file():
     print("Total tokens: {}".format(total_tokens))
     emit('process', "Translating process done", broadcast=True, namespace='/')
     emit('complete', "Translation Complete", broadcast=True, namespace='/')
-@app.route('/download')
-def download_file():
-    file = './translated' + filename
-    return send_file(file, as_attachment=True)
+    return send_file(output, as_attachment=True)
+# @app.route('/download')
+# def download_file():
+#     # file = './translated/' + filename
+#     # print(filename)
+#     filename1 = getattr(g, 'filename', 'default value')
+#     print(filename1)
+#     return "a"
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app,compression=False)
 
