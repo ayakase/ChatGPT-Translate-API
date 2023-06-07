@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO,emit
 import time
@@ -8,6 +8,8 @@ import re
 import tiktoken
 import apikey
 import time
+import json
+import langdetect
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 socketio = SocketIO(app,cors_allowed_origins="http://localhost:5173")
@@ -17,16 +19,43 @@ def hello_world():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files["file"]
+    upload_location = 'upload/' + file.filename
     if 'file' not in request.files:
         return jsonify({'error': 'No file selected'}), 
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 
-    file.save('upload/' + file.filename)
+    file.save(upload_location)
     emit('uploaded', "Upload Success", broadcast=True, namespace='/')
-    def num_tokens_from_string(string: str, encoding_name: str) -> int:
-        encoding = tiktoken.get_encoding(encoding_name)
-        num_tokens = len(encoding.encode(string))
+    def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
+        """Returns the number of tokens used by a list of messages."""
+        try:
+            encoding = tiktoken.encoding_for_model(model)
+        except KeyError:
+            print("Warning: model not found. Using cl100k_base encoding.")
+            encoding = tiktoken.get_encoding("cl100k_base")
+        if model == "gpt-3.5-turbo":
+            print("Warning: gpt-3.5-turbo may change over time. Returning num tokens assuming gpt-3.5-turbo-0301.")
+            return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301")
+        elif model == "gpt-4":
+            print("Warning: gpt-4 may change over time. Returning num tokens assuming gpt-4-0314.")
+            return num_tokens_from_messages(messages, model="gpt-4-0314")
+        elif model == "gpt-3.5-turbo-0301":
+            tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
+            tokens_per_name = -1  # if there's a name, the role is omitted
+        elif model == "gpt-4-0314":
+            tokens_per_message = 3
+            tokens_per_name = 1
+        else:
+            raise NotImplementedError(f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens.""")
+        num_tokens = 0
+        for message in messages:
+            num_tokens += tokens_per_message
+            for key, value in message.items():
+                num_tokens += len(encoding.encode(value))
+                if key == "name":
+                    num_tokens += tokens_per_name
+        num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
         return num_tokens
     system_prompt = """bạn là một phiên dịch viên tiếng nhật sang tiếng việt trong lĩnh vực IT. 
     hãy dịch những nội dung bên dưới sang tiếng việt theo phong cách dùng trong IT.
@@ -70,12 +99,26 @@ def upload_file():
         token = 0
         token_accumulator = 0
         openai.api_key = apikey.api_key
+        
+        new_translations = {}
+        
+        with open('dictJsonver1.json', 'r', encoding='utf-8') as json_file:
+            dictionary = json.load(json_file)
         for row in sheet.iter_rows():
             row_str = ""
             for cell in row:
-                if cell.value is not None and isinstance(cell.value, str) and not cell.value.isascii():
+                cell_value = cell.value
+                if cell_value in dictionary:
+                    cell.value = dictionary[cell_value]
+                if cell.value is not None and isinstance(cell.value, str) and not cell.value.isascii() and langdetect.detect(cell.value) == 'ja':
                     row_str += """
                         {}:{}""".format(cell.coordinate, cell.value.replace("\n", " @NEW_LINE_MARK@ "))
+                        
+                    message_tokens = num_tokens_from_messages([{"role": "user", "content": cell.value}], model= "gpt-3.5-turbo-0301")
+                    
+                    if token_accumulator + message_tokens > 2000:
+                        break
+                    token_accumulator += message_tokens
             if row_str != "":
                 messages=[
                         {
@@ -89,20 +132,22 @@ def upload_file():
                             """.format(row_str),
                         },
                     ]
-                token_accumulator += (num_tokens_from_string((' '.join(str(e) for e in messages)), "cl100k_base"))
+                message_tokens = num_tokens_from_messages(messages, model = "gpt-3.5-turbo-0301")
+                token_accumulator += message_tokens 
                 try:
                     response = openai.ChatCompletion.create(
                         model="gpt-3.5-turbo",
                         messages = messages
                     )
                 except Exception as e:
+                    print("Rate limit exceeded. Please try again later.")
                     print(e)
                     emit('process', e, broadcast=True, namespace='/')
                     continue
                 print(token_accumulator)
                 print(row_str)
                 emit('process', "Translating"+ row_str, broadcast=True, namespace='/')
-                if (token_accumulator > 20000):
+                if token_accumulator > 2000 or message_tokens > 4000:
                     print("30s until next request")
                     emit('process', "30s until next request", broadcast=True, namespace='/')
                     time.sleep(30)
@@ -115,32 +160,49 @@ def upload_file():
                 regex = r"([a-z]+\d+):(.+)"
                 matches = re.finditer(regex, translated, re.MULTILINE | re.IGNORECASE)
                 for matchNum, match in enumerate(matches, start=1):
+                    new_word = sheet[match.group(1)].value
                     sheet[match.group(1)].value = match.group(2).replace(" @NEW_LINE_MARK@ ", "\n")
                     # print(f"set {match.group(1)}={match.group(2)}")
+                    cell_translation = match.group(2).replace(" @NEW_LINE_MARK@ ", "\n")
+                    if new_word not in dictionary.keys():
+                        new_translations[new_word] = cell_translation
+
+        # Update the dictionary JSON file with new translations
+        with open('dictJsonver1.json', 'r', encoding='utf-8') as json_file:
+            dictionary = json.load(json_file)
+
+        dictionary.update(new_translations)
+
+        with open('dictJsonver1.json', 'w', encoding='utf-8') as json_file:
+            json.dump(dictionary, json_file, ensure_ascii=False, indent=4)
+        
         return token
-    def duplicate_worksheets(input, output):
+    def process(input, output):
         total_tokens = 0
         workbook = openpyxl.load_workbook(input)
         sheet_names = workbook.sheetnames
         for sheet_name in sheet_names:
             original_sheet = workbook[sheet_name]
             total_tokens += translate(original_sheet)
+            
             workbook.save(output)
         return total_tokens
     input = './upload/' + file.filename
     output = './translated/' + file.filename
-    total_tokens = duplicate_worksheets(input, output)
+    total_tokens = process(input, output)
     print("Total tokens: {}".format(total_tokens))
     emit('process', "Translating process done", broadcast=True, namespace='/')
     emit('complete', "Translation Complete", broadcast=True, namespace='/')
-    return send_file(output, as_attachment=True)
-# @app.route('/download')
-# def download_file():
-#     # file = './translated/' + filename
-#     # print(filename)
-#     filename1 = getattr(g, 'filename', 'default value')
-#     print(filename1)
-#     return "a"
+    return {'translated_file': file.filename}
+
+
+
+@app.route('/download/<filename>', methods=['POST'])
+def download_file(filename):
+    translate_location = 'translated/' + filename
+    return send_file(translate_location, as_attachment=True)
+
+
 if __name__ == '__main__':
-    socketio.run(app,compression=False)
+    app.run(port=5173)
 

@@ -10,7 +10,7 @@
       class="file-input"
     ></v-file-input>
     <v-btn @click="uploadFile()" class="submit-button">Submit</v-btn>
-    <!-- <v-btn @click="downloadFile"> Download</v-btn> -->
+    <v-btn @click="downloadFile"> Download</v-btn>
     <v-card
       class="server-prompt"
       :loading="isLoading"
@@ -27,13 +27,14 @@
   </div>
 </template>
 
-<script>
+<!-- <script>
 import { ref } from "vue";
 import api from "../api";
 import io from "socket.io-client";
 import { useToast } from "vue-toast-notification";
 import "vue-toast-notification/dist/theme-sugar.css";
 import { onMounted } from "vue";
+
 export default {
   setup() {
     let processStatus = ref("Status");
@@ -61,20 +62,16 @@ export default {
       api
         .post("/upload", formData, config, { responseType: "blob" })
         .then((response) => {
-          console.log(response.data);
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", "data.zip"); // Set the desired file name here
-          document.body.appendChild(link);
-          link.click();
+          
+          this.translateFile = response.data.translated_file;
         })
         .catch((error) => {
           console.log("Error occurred:", error);
         });
-    };
-    const downloadFile = () => {
-      api.get("/download");
+    },
+    downloadFile = () => {
+      window.open('/download/${this.translateFile}', '_blank');
+    
     };
     onMounted(() => {
       socket.on("uploaded", (response) => {
@@ -101,6 +98,100 @@ export default {
       isLoading,
       downloadFile,
       processStatus,
+    };
+  },
+};
+</script> -->
+
+<script>
+import { ref } from "vue";
+import api from "../api";
+import io from "socket.io-client";
+import { useToast } from "vue-toast-notification";
+import "vue-toast-notification/dist/theme-sugar.css";
+import { onMounted } from "vue";
+
+export default {
+  setup() {
+    let processStatus = ref("Status");
+    const socket = io("http://localhost:5000");
+    const selectedFile = ref(null);
+    let formtext = ref();
+    const isLoading = ref(false);
+    let messages = ref([]);
+    const $toast = useToast();
+    const translateFile = ref(""); // Create a reactive reference for translateFile
+
+    const uploadFile = () => {
+      if (!selectedFile.value || selectedFile.value.length === 0) {
+        $toast.error("No file selected");
+        isLoading.value = false;
+        return;
+      }
+      const formData = new FormData();
+      console.log(selectedFile.value[0].name);
+      isLoading.value = true;
+      formData.append("file", selectedFile.value[0]);
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
+      api
+        .post("/upload", formData, config, { responseType: "blob" })
+        .then((response) => {
+          translateFile.value = response.data.translated_file; // Update the translateFile value
+        })
+        .catch((error) => {
+          console.log("Error occurred:", error);
+        });
+    };
+
+const downloadFile = () => {
+  api
+    .post(`/download/${translateFile.value}`, null, { responseType: "blob" })
+    .then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", translateFile.value);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    })
+    .catch((error) => {
+      console.log("Error occurred:", error);
+    });
+};
+
+
+    onMounted(() => {
+      socket.on("uploaded", (response) => {
+        console.log(response);
+        $toast.success(response);
+        processStatus.value = "Translating";
+      });
+      socket.on("complete", (response) => {
+        console.log(response);
+        isLoading.value = false;
+        $toast.success(response);
+        processStatus.value = "Completed Translation";
+      });
+      socket.on("process", (response) => {
+        console.log(response);
+        messages.value.push(response);
+      });
+    });
+
+    return {
+      selectedFile,
+      uploadFile,
+      formtext,
+      messages,
+      isLoading,
+      downloadFile,
+      processStatus,
+      translateFile, // Expose the translateFile reference
     };
   },
 };
