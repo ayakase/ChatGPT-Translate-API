@@ -18,7 +18,16 @@
     >
       <v-divider></v-divider>
       <div class="message-container">
-        <p class="message" v-for="message in messages" :key="message">
+        <p
+          class="message"
+          v-for="message in messages"
+          :key="message"
+          :class="{
+            keepon: message === 'continue',
+            wait: message === '30s until next request',
+            done: message === 'Translating process done',
+          }"
+        >
           {{ message }}
         </p>
       </div>
@@ -163,7 +172,7 @@ export default {
 }
 
 .message-container {
-  height: 90%;
+  height: 86%;
   overflow: scroll;
 }
 
@@ -197,5 +206,20 @@ export default {
   100% {
     transform: scale(1);
   }
+}
+.keepon {
+  color: rgb(0, 226, 0);
+  font-size: large;
+  font-weight: bold;
+}
+.wait {
+  color: rgb(199, 199, 58);
+  font-size: large;
+  font-weight: bold;
+}
+.done {
+  color: rgb(86, 86, 255);
+  font-size: large;
+  font-weight: bold;
 }
 </style>
