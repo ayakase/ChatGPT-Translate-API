@@ -1,4 +1,4 @@
 /backend/apikey.py
 /frontend/node_modules
-/backend/translated
-backend/upload
+/backend/translated/*
+backend/upload/*
