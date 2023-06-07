@@ -69,6 +69,7 @@ export default {
       const formData = new FormData();
       console.log(selectedFile.value[0].name);
       isLoading.value = true;
+      downloadable.value = false;
       formData.append("file", selectedFile.value[0]);
       const config = {
         headers: {
