@@ -110,7 +110,7 @@ def upload_file():
                 cell_value = cell.value
                 if cell_value in dictionary:
                     cell.value = dictionary[cell_value]
-                if cell.value is not None and isinstance(cell.value, str) and not cell.value.isascii() and langdetect.detect(cell.value) == 'ja':
+                if cell.value is not None and isinstance(cell.value, str) and not cell.value.isascii():
                     row_str += """
                         {}:{}""".format(cell.coordinate, cell.value.replace("\n", " @NEW_LINE_MARK@ "))
                         
@@ -140,14 +140,14 @@ def upload_file():
                         messages = messages
                     )
                 except Exception as e:
-                    print("Rate limit exceeded. Please try again later.")
+                    print("Rate limit exzceeded. Please try again later.")
                     print(e)
-                    emit('process', e, broadcast=True, namespace='/')
+                    emit('process', "Exceeded rate limit", broadcast=True, namespace='/')
                     continue
                 print(token_accumulator)
                 print(row_str)
                 emit('process', "Translating"+ row_str, broadcast=True, namespace='/')
-                if token_accumulator > 2000 or message_tokens > 4000:
+                if token_accumulator > 4000:
                     print("30s until next request")
                     emit('process', "30s until next request", broadcast=True, namespace='/')
                     time.sleep(30)

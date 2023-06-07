@@ -20,11 +20,14 @@
           <v-icon>mdi-history</v-icon>
           History
         </v-btn>
-        <v-btn value="nearby">
-          <v-icon>mdi-map-marker</v-icon>
-          Nearby
-        </v-btn>
-        <v-btn icon="mdi-dots-vertical"></v-btn>
+        <v-switch
+          v-model="switchValue"
+          hide-details
+          true-value="Dark"
+          false-value="Light"
+          color="red-darken-3"
+          inset
+        ></v-switch>
       </template>
     </v-app-bar>
     <v-main>
@@ -32,6 +35,16 @@
     </v-main>
   </v-app>
 </template>
+<script>
+import { ref } from "vue";
+
+export default {
+  setup() {
+    let switchValue = ref("Light");
+    return { switchValue };
+  },
+};
+</script>
 <style>
 v-app-bar {
   background-color: rebeccapurple;
