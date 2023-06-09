@@ -16,7 +16,7 @@
           <v-icon>mdi-translate</v-icon>
           Translate
         </v-btn>
-        <v-btn value="favorites" to="/about">
+        <v-btn value="history" to="/history">
           <v-icon>mdi-history</v-icon>
           History
         </v-btn>

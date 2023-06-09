@@ -2,6 +2,8 @@
   <div class="container">
     <h2 class="title">Upload XLSX file here</h2>
     <v-file-input
+      chips
+      multiple
       show-size
       counter
       v-model="selectedFile"

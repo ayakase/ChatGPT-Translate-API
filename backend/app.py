@@ -112,7 +112,7 @@ def upload_file():
                     cell.value = dictionary[cell_value]
                 if cell_value in dictionary.values():
                     continue
-                if cell.value is not None and isinstance(cell.value, str) and not cell.value.isascii() and cell_value not in dictionary:
+                if cell.value is not None and isinstance(cell.value, str) and not cell.value.isascii() and cell_value not in dictionary.keys():
                     row_str += """
                         {}:{}""".format(cell.coordinate, cell.value.replace("\n", " @NEW_LINE_MARK@ "))
                         
