@@ -5,7 +5,7 @@
         <div class="logo-container">
           <img
             class="company-logo"
-            src="../src/assets/company-logo.jpg"
+            src="../src/assets/company-logo.png"
             alt=""
           />
           <img class="chatgpt-logo" src="../src/assets/chatgpt.png" alt="" />
@@ -29,7 +29,8 @@
           hide-details
           true-value="Dark"
           false-value="Light"
-          color="red-darken-3"
+          @click="toggleTheme"
+          color="orange"
           inset
         ></v-switch>
       </template>
@@ -41,11 +42,21 @@
 </template>
 <script>
 import { ref } from "vue";
+import { useTheme } from "vuetify";
 
 export default {
   setup() {
     let switchValue = ref("Light");
-    return { switchValue };
+    const theme = useTheme();
+
+    return {
+      switchValue,
+      theme,
+      toggleTheme: () =>
+        (theme.global.name.value = theme.global.current.value.dark
+          ? "light"
+          : "dark"),
+    };
   },
 };
 </script>
