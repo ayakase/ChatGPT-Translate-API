@@ -16,10 +16,14 @@
           <v-icon>mdi-translate</v-icon>
           Translate
         </v-btn>
-        <v-btn value="history" to="/history">
-          <v-icon>mdi-history</v-icon>
-          History
-        </v-btn>
+        <div class="spacer"></div>
+        <v-badge color="error" content="12">
+          <v-btn value="history" to="/history">
+            <v-icon>mdi-history</v-icon>
+            History
+          </v-btn>
+        </v-badge>
+        <div class="spacer"></div>
         <v-switch
           v-model="switchValue"
           hide-details
@@ -69,5 +73,8 @@ v-app-bar {
 .bottom-navigation v-btn {
   flex-grow: 1;
   text-align: center;
+}
+.spacer {
+  margin: 1rem;
 }
 </style>

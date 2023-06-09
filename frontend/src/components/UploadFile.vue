@@ -16,11 +16,19 @@
       class="server-prompt"
       :loading="isLoading"
       :title="processStatus"
-      variant="outlined"
+      variant="plain"
     >
       <v-divider></v-divider>
       <div class="message-container">
-        <p
+        <v-card class="sheet-done">
+          <div class="status-symbol">
+            <v-icon class="check-icon">mdi-check</v-icon>
+          </div>
+          <div class="sheet-name">
+            <p>Name of sheet</p>
+          </div>
+        </v-card>
+        <!-- <p
           class="message"
           v-for="message in messages"
           :key="message"
@@ -31,7 +39,7 @@
           }"
         >
           {{ message }}
-        </p>
+        </p> -->
       </div>
     </v-card>
     <Transition name="bounce">
@@ -54,7 +62,7 @@ export default {
   setup() {
     let processStatus = ref("Status");
     const socket = io("http://localhost:5000");
-    const selectedFile = ref(null);
+    const selectedFile = ref([]);
     let formtext = ref();
     const isLoading = ref(false);
     let messages = ref([]);
@@ -69,23 +77,26 @@ export default {
         return;
       }
       const formData = new FormData();
-      console.log(selectedFile.value[0].name);
       isLoading.value = true;
       downloadable.value = false;
-      formData.append("file", selectedFile.value[0]);
+
+      selectedFile.value.forEach((file) => {
+        formData.append("files", file);
+        console.log(file);
+      });
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       };
-      api
-        .post("/upload", formData, config, { responseType: "blob" })
-        .then((response) => {
-          translateFile.value = response.data.translated_file; // Update the translateFile value
-        })
-        .catch((error) => {
-          console.log("Error occurred:", error);
-        });
+        api
+          .post("/upload", formData, config, { responseType: "blob" })
+          .then((response) => {
+            translateFile.value = response.data.translated_file; // Update the translateFile value
+          })
+          .catch((error) => {
+            console.log("Error occurred:", error);
+          });
     };
 
     const downloadFile = () => {
@@ -120,10 +131,10 @@ export default {
         processStatus.value = "Completed Translation";
         downloadable.value = true;
       });
-      socket.on("process", (response) => {
-        console.log(response);
-        messages.value.push(response);
-      });
+      // socket.on("process", (response) => {
+      //   console.log(response);
+      //   messages.value.push(response);
+      // });
     });
 
     return {
@@ -166,12 +177,12 @@ export default {
 }
 
 .server-prompt {
-  color: white;
+  /* color: white; */
   margin-top: 1rem;
   width: 60%;
   height: 28rem;
   overflow: hidden;
-  background-color: rgb(61, 61, 61);
+  /* background-color: rgb(61, 61, 61); */
 }
 
 .message-container {
@@ -224,5 +235,23 @@ export default {
   color: rgb(86, 86, 255);
   font-size: large;
   font-weight: bold;
+}
+.sheet-done {
+  margin-left: 1rem;
+  margin-right: 1rem;
+  display: flex;
+  widows: 100%;
+  justify-content: space-between;
+}
+.status-symbol {
+  width: 3rem;
+  height: 3rem;
+  padding: auto;
+  border-radius: 2rem;
+  background-color: red;
+}
+.check-icon {
+  margin: auto;
+  padding: auto;
 }
 </style>
