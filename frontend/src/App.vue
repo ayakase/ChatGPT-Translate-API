@@ -12,18 +12,6 @@
         </div>
       </template>
       <template v-slot:append>
-        <v-btn value="recent" to="/">
-          <v-icon>mdi-translate</v-icon>
-          Translate
-        </v-btn>
-        <div class="spacer"></div>
-        <v-badge color="error" content="12">
-          <v-btn value="history" to="/history">
-            <v-icon>mdi-history</v-icon>
-            History
-          </v-btn>
-        </v-badge>
-        <div class="spacer"></div>
         <v-switch
           v-model="switchValue"
           hide-details
@@ -32,7 +20,29 @@
           @click="toggleTheme"
           color="orange"
           inset
-        ></v-switch>
+        >
+          <v-tooltip activator="parent" location="bottom"
+            >Toggle Dark Mode</v-tooltip
+          >
+        </v-switch>
+        <div class="spacer"></div>
+
+        <v-btn value="recent" to="/">
+          <v-icon>mdi-translate</v-icon>
+          Translate
+        </v-btn>
+        <div class="spacer"></div>
+
+        <v-badge color="error" content="12">
+          <v-btn value="history" to="/history">
+            <v-icon>mdi-history</v-icon>
+            History
+            <v-tooltip activator="parent" location="bottom"
+              >File that you have translated</v-tooltip
+            >
+          </v-btn>
+        </v-badge>
+        <div class="spacer"></div>
       </template>
     </v-app-bar>
     <v-main>
