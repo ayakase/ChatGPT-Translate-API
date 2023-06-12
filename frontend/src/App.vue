@@ -8,7 +8,9 @@
             src="../src/assets/company-logo.png"
             alt=""
           />
-          <img class="chatgpt-logo" src="../src/assets/chatgpt.png" alt="" />
+          <div class="spacer"></div>
+
+          <!-- <img class="chatgpt-logo" src="../src/assets/chatgpt.png" alt="" /> -->
         </div>
       </template>
       <template v-slot:append>
@@ -76,6 +78,8 @@ v-app-bar {
 }
 
 .logo-container {
+  display:flex;
+  flex-direction: row;
   margin-right: auto;
   margin-left: 0;
 }

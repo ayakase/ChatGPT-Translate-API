@@ -12,7 +12,7 @@
       class="file-input"
     ></v-file-input>
     <v-btn @click="uploadFile()" class="submit-button">Submit</v-btn>
-    <v-card
+    <!-- <v-card
       class="server-prompt"
       :loading="isLoading"
       :title="processStatus"
@@ -28,7 +28,7 @@
             <p>Name of sheet</p>
           </div>
         </v-card>
-        <!-- <p
+        <p
           class="message"
           v-for="message in messages"
           :key="message"
@@ -39,9 +39,9 @@
           }"
         >
           {{ message }}
-        </p> -->
+        </p>
       </div>
-    </v-card>
+    </v-card> -->
     <Transition name="bounce">
       <v-btn @click="downloadFile" class="download-button" v-if="downloadable">
         Download <v-icon>mdi-arrow-down-bold-hexagon-outline</v-icon></v-btn
