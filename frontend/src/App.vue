@@ -18,6 +18,7 @@
           v-model="switchValue"
           hide-details
           @click="toggleTheme"
+          :prepend-icon="iconStatus"
           color="orange"
           inset
         >
@@ -58,19 +59,27 @@ export default {
   setup() {
     let switchValue = ref();
     const theme = useTheme();
+    let iconStatus = ref();
     function toggleTheme() {
       theme.global.name.value = theme.global.current.value.dark
         ? "light"
         : "dark";
       localStorage.setItem("theme", theme.global.name.value);
+      if (localStorage.getItem("theme") == "light") {
+        iconStatus.value = "mdi-white-balance-sunny";
+      } else if (localStorage.getItem("theme") == "dark") {
+        iconStatus.value = "mdi-moon-waxing-crescent";
+      }
     }
     onMounted(() => {
       theme.global.name.value = localStorage.getItem("theme") || "light";
       console.log(localStorage.getItem("theme"));
       if (localStorage.getItem("theme") == "light") {
         switchValue.value = false;
+        iconStatus.value = "mdi-white-balance-sunny";
       } else if (localStorage.getItem("theme") == "dark") {
         switchValue.value = true;
+        iconStatus.value = "mdi-moon-waxing-crescent";
       } else {
         switchValue.value = false; // Default to light theme if no localStorage value is set
       }
@@ -79,6 +88,7 @@ export default {
       switchValue,
       theme,
       toggleTheme,
+      iconStatus,
     };
   },
 };
