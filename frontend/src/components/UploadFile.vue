@@ -82,21 +82,21 @@ export default {
 
       selectedFile.value.forEach((file) => {
         formData.append("files", file);
-        console.log(file);
       });
+
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       };
-        api
-          .post("/upload", formData, config, { responseType: "blob" })
-          .then((response) => {
-            translateFile.value = response.data.translated_file; // Update the translateFile value
-          })
-          .catch((error) => {
-            console.log("Error occurred:", error);
-          });
+      api
+        .post("/upload", formData, config, { responseType: "blob" })
+        .then((response) => {
+          translateFile.value = response.data.translated_file; // Update the translateFile value
+        })
+        .catch((error) => {
+          console.log("Error occurred:", error);
+        });
     };
 
     const downloadFile = () => {

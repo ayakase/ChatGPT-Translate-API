@@ -18,17 +18,22 @@ def hello_world():
     return 'Connected to server'
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    files = request.files.getlist["files"]
-    for file in files:
-        upload_location = 'upload/' + file.filename
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file selected'}), 
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 
-        file.save(upload_location)  
-        emit('uploaded', "Upload Success", broadcast=True, namespace='/')
-        print(file.filename)
+    try:
+        files = request.files.getlist("files")
+        for file in files:
+            print (file.filename)
+    except Exception as e:
+            print (e.message)
+    # for file in files:
+    #     upload_location = 'upload/' + file.filename
+    #     if 'file' not in request.files:
+    #         return jsonify({'error': 'No file selected'}), 
+    #     file = request.files['file']
+    #     if file.filename == '':
+    #         return jsonify({'error': 'No file selected'}), 
+    #     file.save(upload_location)  
+    #     emit('uploaded', "Upload Success", broadcast=True, namespace='/')
+    #     print(file.filename)
     # def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     #     """Returns the number of tokens used by a list of messages."""
     #     try:
