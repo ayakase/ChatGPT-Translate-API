@@ -29,7 +29,7 @@ def upload_file():
         # if file.filename == '':
         #     return jsonify({'error': 'No file selected'}), 
         file.save(upload_location)  
-        emit('uploaded', "Upload Success", broadcast=True, namespace='/')
+        emit('uploaded', "Uploaded " + file.filename +  " " + "Success", broadcast=True, namespace='/')
         print(file.filename)
     # def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0301"):
     #     """Returns the number of tokens used by a list of messages."""

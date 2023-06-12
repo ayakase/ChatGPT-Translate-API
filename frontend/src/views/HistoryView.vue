@@ -46,56 +46,6 @@ export default {
         time: "9-6-2023",
         size: "1.2 MB",
       },
-      {
-        name: "presentation.ppt",
-        time: "18-2-2023",
-        size: "4.8 MB",
-      },
-      {
-        name: "spreadsheet.xlsx",
-        time: "3-11-2022",
-        size: "800.0 KB",
-      },
-      {
-        name: "music.mp3",
-        time: "21-7-2023",
-        size: "3.6 MB",
-      },
-      {
-        name: "video.mp4",
-        time: "10-4-2023",
-        size: "25.0 MB",
-      },
-      {
-        name: "archive.zip",
-        time: "5-9-2022",
-        size: "6.7 MB",
-      },
-      {
-        name: "database.db",
-        time: "12-12-2022",
-        size: "50.0 MB",
-      },
-      {
-        name: "code.py",
-        time: "8-1-2023",
-        size: "75.0 KB",
-      },
-      {
-        name: "text.txt",
-        time: "30-5-2023",
-        size: "12.0 KB",
-      },
-      {
-        name: "presentation2.ppt",
-        time: "17-9-2022",
-        size: "3.4 MB",
-      },
-      {
-        name: "image2.jpg",
-        time: "29-11-2022",
-        size: "2.8 MB",
-      },
     ],
   }),
 };

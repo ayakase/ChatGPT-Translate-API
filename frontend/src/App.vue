@@ -17,8 +17,6 @@
         <v-switch
           v-model="switchValue"
           hide-details
-          true-value="Dark"
-          false-value="Light"
           @click="toggleTheme"
           color="orange"
           inset
@@ -29,7 +27,7 @@
         </v-switch>
         <div class="spacer"></div>
 
-        <v-btn value="recent" to="/">
+        <v-btn value="home" to="/">
           <v-icon>mdi-translate</v-icon>
           Translate
         </v-btn>
@@ -53,21 +51,33 @@
   </v-app>
 </template>
 <script>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useTheme } from "vuetify";
 
 export default {
   setup() {
-    let switchValue = ref("Light");
+    let switchValue = ref();
     const theme = useTheme();
-
+    function toggleTheme() {
+      theme.global.name.value = theme.global.current.value.dark
+        ? "light"
+        : "dark";
+      localStorage.setItem("theme", theme.global.name.value);
+    }
+    onMounted(() => {
+      theme.global.name.value = localStorage.getItem("theme");
+      console.log(localStorage.getItem("theme"));
+      // switchValue.value =
+      if (localStorage.getItem("theme") == "light") {
+        switchValue.value = false;
+      } else if (localStorage.getItem("theme") == "dark") {
+        switchValue.value = true;
+      }
+    });
     return {
       switchValue,
       theme,
-      toggleTheme: () =>
-        (theme.global.name.value = theme.global.current.value.dark
-          ? "light"
-          : "dark"),
+      toggleTheme,
     };
   },
 };
@@ -78,7 +88,7 @@ v-app-bar {
 }
 
 .logo-container {
-  display:flex;
+  display: flex;
   flex-direction: row;
   margin-right: auto;
   margin-left: 0;
