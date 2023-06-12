@@ -65,13 +65,14 @@ export default {
       localStorage.setItem("theme", theme.global.name.value);
     }
     onMounted(() => {
-      theme.global.name.value = localStorage.getItem("theme");
+      theme.global.name.value = localStorage.getItem("theme") || "light";
       console.log(localStorage.getItem("theme"));
-      // switchValue.value =
       if (localStorage.getItem("theme") == "light") {
         switchValue.value = false;
       } else if (localStorage.getItem("theme") == "dark") {
         switchValue.value = true;
+      } else {
+        switchValue.value = false; // Default to light theme if no localStorage value is set
       }
     });
     return {
