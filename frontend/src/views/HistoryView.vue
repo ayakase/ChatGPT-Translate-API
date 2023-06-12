@@ -32,22 +32,17 @@
   </v-container>
 </template>
 <script>
+import { onMounted } from "vue";
+import api from "../api";
+
 export default {
-  data: () => ({
-    color: "green",
-    files: [
-      {
-        name: "document.docx",
-        time: "27-8-2022",
-        size: "2.5 MB",
-      },
-      {
-        name: "image.jpg",
-        time: "9-6-2023",
-        size: "1.2 MB",
-      },
-    ],
-  }),
+  setup() {
+    onMounted(() => {
+      api.get("/history").then((response) => {
+        console.log(response.data);
+      });
+    });
+  },
 };
 </script>
 
