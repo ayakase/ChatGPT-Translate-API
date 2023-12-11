@@ -6,7 +6,6 @@ import openai
 import openpyxl 
 import re
 import tiktoken
-import apikey
 import time
 import json
 import langdetect
