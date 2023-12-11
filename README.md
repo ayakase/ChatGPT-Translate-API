@@ -8,3 +8,7 @@ To run the project:
   (due to the limitations of GPT 3.5 tier plan, the API rate limit won't be enough for large xlsx files)
 
 ![image](https://github.com/ayakase/ChatGPT-Translate-API/assets/81686263/8cb0dbfa-376a-4734-80e4-10d64a5f7c90)
+
+Demo image:
+(due to the restriction of api limit for GPt-3.5, I cannot, represent a fully functional app)
+![Alt text](image.png)
