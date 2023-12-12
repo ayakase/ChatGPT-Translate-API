@@ -13,4 +13,6 @@ Demo image:
 (due to the restriction of api limit for GPT-3.5 (cuz I'm poor as hek) (which allows only 3 request per minutes, and this app reads line by line), I cannot, demonstrate a fully functional app here)
 ![Alt text](image.png)
 
+![Alt text](image-2.png)
+
 ![Alt text](image-1.png)
