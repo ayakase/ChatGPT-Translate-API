@@ -7,13 +7,15 @@ import openpyxl
 import re
 import tiktoken
 import time
+import logging
 import json
 import langdetect
 from dotenv import load_dotenv
 import os
 load_dotenv()
 api_key = os.getenv('api_key')
-
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 socketio = SocketIO(app,cors_allowed_origins="http://localhost:5173")
@@ -74,16 +76,11 @@ def upload_file():
     ------
     A1: 更新履歴
     D6: 案件を選択
-
     GH25:-問い合わせる案件を選択してください。
     AH25:-画面ID
-
         作成者
-
     D7: 案件を選択
-
     )
-
     Format trả lời sẽ như bên dưới trong cặp dấu ():
     (
     RESULT
@@ -122,7 +119,7 @@ def upload_file():
                         
                     message_tokens = num_tokens_from_messages([{"role": "user", "content": cell.value}], model= "gpt-3.5-turbo-0301")
                     
-                    if token_accumulator + message_tokens > 2000:
+                    if token_accumulator + message_tokens > 10000:
                         break
                     token_accumulator += message_tokens
             if row_str != "":
@@ -141,10 +138,13 @@ def upload_file():
                 message_tokens = num_tokens_from_messages(messages, model = "gpt-3.5-turbo-0301")
                 token_accumulator += message_tokens 
                 try:
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-                        messages = messages
-                    )
+                    # response = openai.ChatCompletion.create(
+                    #     model="gpt-3.5-turbo",
+                    #     messages = messages
+                    # )
+                    print(messages)
+                    print(row_str)
+                    print(token_accumulator)
                 except Exception as e:
                     print("Rate limit exzceeded. Please try again later.")
                     print(e)
@@ -153,9 +153,8 @@ def upload_file():
                     emit('process', "30s until next request", broadcast=True, namespace='/')
                     time.sleep(30)
                     print("continue")
+                    emit('process', "continue", broadcast=True, namespace='/')
                     continue
-                print(token_accumulator)
-                print(row_str)
                 emit('process', "Translating"+ row_str, broadcast=True, namespace='/')
                 if token_accumulator > 4000:
                     print("30s until next request")
@@ -164,9 +163,9 @@ def upload_file():
                     print("continue")
                     emit('process', "continue", broadcast=True, namespace='/')
                     token_accumulator = 0
-                token += response['usage']['total_tokens']
-                translated = response['choices'][0]['message']['content']
-
+                # token += response['usage']['total_tokens']
+                # translated = response['choices'][0]['message']['content']
+                translated = ""
                 regex = r"([a-z]+\d+):(.+)"
                 matches = re.finditer(regex, translated, re.MULTILINE | re.IGNORECASE)
                 for matchNum, match in enumerate(matches, start=1):
