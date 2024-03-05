@@ -1,6 +1,7 @@
 # ChatGPT-Translate-API
 
 A project using VueJS, Flask, Socket.IO and OpenAI API to translate XLSX files from Japanese to Vietnamese, but still keeps the format such as text color, background color, images, font, size,.....
+Markdown translator core process included but hasn't been implemented to server 
 To run the project:
 
 - Install all the dependencies needed for backend and frontend
